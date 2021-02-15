@@ -109,17 +109,66 @@
         android:id="@+id/buttonimage2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="25dp"
+        android:text="Select image 2"
         app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="346dp" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonimage1" />
 
     <TextView
         android:id="@+id/textViewimage2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
         android:text="TextView"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/buttonimage2"
-        tools:layout_editor_absoluteY="361dp" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonimage1" />
+
+    <Button
+        android:id="@+id/buttonimage3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="25dp"
+        android:text="select image 3"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonimage2" />
+
+    <TextView
+        android:id="@+id/textViewimage3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
+        android:text="TextView"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/buttonimage3"
+        app:layout_constraintTop_toBottomOf="@+id/buttonimage2" />
+
+    <Button
+        android:id="@+id/buttonimage4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="25dp"
+        android:text="select image 4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonimage3" />
+
+    <TextView
+        android:id="@+id/textViewimage4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
+        android:text="TextView"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/buttonimage4"
+        app:layout_constraintTop_toBottomOf="@+id/buttonimage3" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
