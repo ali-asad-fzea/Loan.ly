@@ -39,7 +39,5 @@ public class MainActivity extends AppCompatActivity {
         image3data=findViewById(R.id.textViewimage3);
         image4data=findViewById(R.id.textViewimage4);
         submit=findViewById(R.id.submit);
-
-
     }
 }
