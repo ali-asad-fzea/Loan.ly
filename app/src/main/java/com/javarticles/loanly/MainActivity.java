@@ -7,6 +7,7 @@ import androidx.core.content.FileProvider;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -17,6 +18,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -40,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     String[] sampleimagesinfo;
 
     int imagenumber=-1;
-    String currentPhotoPath;
+    String mCurrentPhotoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,12 +66,12 @@ public class MainActivity extends AppCompatActivity {
         sampleimages= new Bitmap[]{null, null, null, null};
         sampleimagesinfo=new String[]{null,null,null,null};
 
-        submit.setOnClickListener(new View.OnClickListener() {
+        /*submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 submit_function();
             }
-        });
+        });*/
 
         selectphoto1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,9 +106,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    void submit_function(){
+    /*void submit_function(){
 
-    }
+    }*/
     void capture_function(){
         final int REQUEST_IMAGE_CAPTURE = 1;
 
@@ -137,11 +140,12 @@ public class MainActivity extends AppCompatActivity {
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
+        String imageFileName = timeStamp;
 
         //storing filename for display
         if(imagenumber!=-1){
-            sampleimagesinfo[imagenumber]=imageFileName+".jpg ";
+            //sampleimagesinfo[imagenumber]=imageFileName+".jpg ";
+            sampleimagesinfo[imagenumber]="g ";
         }
 
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -152,8 +156,60 @@ public class MainActivity extends AppCompatActivity {
         );
 
         // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
+        MainActivity.this.mCurrentPhotoPath = image.getAbsolutePath();
         return image;
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            //Uri uri = data.getData();
+            File file = new File(MainActivity.this.mCurrentPhotoPath);
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),Uri.fromFile(file));
+
+                //getting the size of the image after decoding into jpeg
+                Bitmap mybitmap=bitmap;
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                mybitmap.compress(Bitmap.CompressFormat.JPEG,100,out);
+                Bitmap decoded = BitmapFactory.decodeStream(new ByteArrayInputStream(out.toByteArray()));
+
+                sampleimagesinfo[imagenumber]+=Integer.toString(decoded.getByteCount())+"KB";
+
+                switch (imagenumber){
+                    case 0 : {
+                        image1data.setText(sampleimagesinfo[imagenumber]);
+                    break;}
+
+                    case 1 : {
+                        image2data.setText(sampleimagesinfo[imagenumber]);
+                        break;
+                    }
+
+                    case 2 :{
+                        image3data.setText(sampleimagesinfo[imagenumber]);
+                        break;
+                    }
+                    case 3 : {
+                        image4data.setText(sampleimagesinfo[imagenumber]);
+                        break;
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        else{
+            Toast.makeText(MainActivity.this,"Something Went Wrong !!!",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    //get size of image
+    /*int sizeOfImage(Bitmap bitmap){
+        if(bitmap.)
+    }*/
 
 }
