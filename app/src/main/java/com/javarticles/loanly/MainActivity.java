@@ -6,12 +6,14 @@ import androidx.core.content.FileProvider;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -139,19 +141,15 @@ public class MainActivity extends AppCompatActivity {
     //creating a temporary file for image
     private File createImageFile() throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        SimpleDateFormat sdf=new SimpleDateFormat("yyMMdd_HHmmss_");
+        String timeStamp = sdf.format(new Date());
         String imageFileName = timeStamp;
 
-        //storing filename for display
-        if(imagenumber!=-1){
-            //sampleimagesinfo[imagenumber]=imageFileName+".jpg ";
-            sampleimagesinfo[imagenumber]="g ";
-        }
 
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
+                ".jpeg",         /* suffix */
                 storageDir      /* directory */
         );
 
@@ -169,13 +167,9 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),Uri.fromFile(file));
 
-                //getting the size of the image after decoding into jpeg
-                Bitmap mybitmap=bitmap;
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                mybitmap.compress(Bitmap.CompressFormat.JPEG,100,out);
-                Bitmap decoded = BitmapFactory.decodeStream(new ByteArrayInputStream(out.toByteArray()));
-
-                sampleimagesinfo[imagenumber]+=Integer.toString(decoded.getByteCount())+"KB";
+                /////fetching file info////
+                sampleimagesinfo[imagenumber]=file.getName()+"\n"+String.valueOf(file.length()/1000)+" KB";
+                //////////////////////////
 
                 switch (imagenumber){
                     case 0 : {
@@ -206,10 +200,5 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this,"Something Went Wrong !!!",Toast.LENGTH_SHORT).show();
         }
     }
-
-    //get size of image
-    /*int sizeOfImage(Bitmap bitmap){
-        if(bitmap.)
-    }*/
 
 }
