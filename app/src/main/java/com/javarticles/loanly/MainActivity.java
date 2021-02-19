@@ -23,6 +23,7 @@ import android.widget.Toast;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
     int imagenumber=-1;
     String mCurrentPhotoPath;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,6 +169,29 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),Uri.fromFile(file));
 
+                /////applying watermark////
+                Bitmap waterMarkBitmap=Watermark_function(bitmap);
+                //////////////////////////
+
+                //////saving compressed bitmap////
+                SimpleDateFormat sdf=new SimpleDateFormat("yyMMdd_HHmmss_");
+                String timeStamp = sdf.format(new Date());
+                String imageFileName = "Compressed_"+timeStamp;
+
+                File dir=getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                File imagecompress=File.createTempFile(
+                        imageFileName,
+                        ".jpeg",
+                        dir
+                );
+                try (FileOutputStream out = new FileOutputStream(imagecompress)) {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out); // bmp is your Bitmap instance
+                    // PNG is a lossless format, the compression factor (100) is ignored
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                /////////////////////////////////
+
                 /////fetching file info////
                 sampleimagesinfo[imagenumber]=file.getName()+"\n"+String.valueOf(file.length()/1000)+" KB";
                 //////////////////////////
@@ -199,6 +224,10 @@ public class MainActivity extends AppCompatActivity {
         else{
             Toast.makeText(MainActivity.this,"Something Went Wrong !!!",Toast.LENGTH_SHORT).show();
         }
+    }
+
+    Bitmap Watermark_function(Bitmap bit){
+        return bit;
     }
 
 }
