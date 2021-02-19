@@ -1,24 +1,37 @@
 package com.javarticles.loanly;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -28,7 +41,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        FetchAddressTask.OnTaskCompleted{
 
     EditText name;
     EditText email;
@@ -45,8 +59,14 @@ public class MainActivity extends AppCompatActivity {
     Bitmap[] sampleimages;
     String[] sampleimagesinfo;
 
-    int imagenumber=-1;
+    int imagenumber = -1;
     String mCurrentPhotoPath;
+
+    //////location/////
+    Location mLastLocation;
+    FusedLocationProviderClient mFusedLocationClient;
+
+    //////////////////
 
 
     @Override
@@ -54,21 +74,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        name=findViewById(R.id.editTextTextPersonName);
-        email=findViewById(R.id.editTextTextEmailAddress);
-        phone=findViewById(R.id.editTextPhone);
-        selectphoto1=findViewById(R.id.buttonimage1);
-        selectphoto2=findViewById(R.id.buttonimage2);
-        selectphoto3=findViewById(R.id.buttonimage3);
-        selectphoto4=findViewById(R.id.buttonimage4);
-        image1data=findViewById(R.id.textViewimage1);
-        image2data=findViewById(R.id.textViewimage2);
-        image3data=findViewById(R.id.textViewimage3);
-        image4data=findViewById(R.id.textViewimage4);
-        submit=findViewById(R.id.submit);
+        name = findViewById(R.id.editTextTextPersonName);
+        email = findViewById(R.id.editTextTextEmailAddress);
+        phone = findViewById(R.id.editTextPhone);
+        selectphoto1 = findViewById(R.id.buttonimage1);
+        selectphoto2 = findViewById(R.id.buttonimage2);
+        selectphoto3 = findViewById(R.id.buttonimage3);
+        selectphoto4 = findViewById(R.id.buttonimage4);
+        image1data = findViewById(R.id.textViewimage1);
+        image2data = findViewById(R.id.textViewimage2);
+        image3data = findViewById(R.id.textViewimage3);
+        image4data = findViewById(R.id.textViewimage4);
+        submit = findViewById(R.id.submit);
 
-        sampleimages= new Bitmap[]{null, null, null, null};
-        sampleimagesinfo=new String[]{null,null,null,null};
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        sampleimages = new Bitmap[]{null, null, null, null};
+        sampleimagesinfo = new String[]{null, null, null, null};
 
         /*submit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         selectphoto1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                imagenumber=0;
+                imagenumber = 0;
                 capture_function();
             }
         });
@@ -88,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         selectphoto2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                imagenumber=1;
+                imagenumber = 1;
                 capture_function();
             }
         });
@@ -96,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         selectphoto3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                imagenumber=2;
+                imagenumber = 2;
                 capture_function();
             }
         });
@@ -104,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         selectphoto4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                imagenumber=3;
+                imagenumber = 3;
                 capture_function();
             }
         });
@@ -113,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
     /*void submit_function(){
 
     }*/
-    void capture_function(){
+    void capture_function() {
         final int REQUEST_IMAGE_CAPTURE = 1;
 
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -143,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
     //creating a temporary file for image
     private File createImageFile() throws IOException {
         // Create an image file name
-        SimpleDateFormat sdf=new SimpleDateFormat("yyMMdd_HHmmss_");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd_HHmmss_");
         String timeStamp = sdf.format(new Date());
         String imageFileName = timeStamp;
 
@@ -167,19 +189,19 @@ public class MainActivity extends AppCompatActivity {
             //Uri uri = data.getData();
             File file = new File(MainActivity.this.mCurrentPhotoPath);
             try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),Uri.fromFile(file));
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.fromFile(file));
 
                 /////applying watermark////
-                Bitmap waterMarkBitmap=Watermark_function(bitmap);
+                Watermark_function();
                 //////////////////////////
 
                 //////saving compressed bitmap////
-                SimpleDateFormat sdf=new SimpleDateFormat("yyMMdd_HHmmss_");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd_HHmmss_");
                 String timeStamp = sdf.format(new Date());
-                String imageFileName = "Compressed_"+timeStamp;
+                String imageFileName = "Compressed_" + timeStamp;
 
-                File dir=getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-                File imagecompress=File.createTempFile(
+                File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                File imagecompress = File.createTempFile(
                         imageFileName,
                         ".jpeg",
                         dir
@@ -193,24 +215,25 @@ public class MainActivity extends AppCompatActivity {
                 /////////////////////////////////
 
                 /////fetching file info////
-                sampleimagesinfo[imagenumber]=file.getName()+"\n"+String.valueOf(file.length()/1000)+" KB";
+                sampleimagesinfo[imagenumber] = file.getName() + "\n" + String.valueOf(file.length() / 1000) + " KB";
                 //////////////////////////
 
-                switch (imagenumber){
-                    case 0 : {
+                switch (imagenumber) {
+                    case 0: {
                         image1data.setText(sampleimagesinfo[imagenumber]);
-                    break;}
+                        break;
+                    }
 
-                    case 1 : {
+                    case 1: {
                         image2data.setText(sampleimagesinfo[imagenumber]);
                         break;
                     }
 
-                    case 2 :{
+                    case 2: {
                         image3data.setText(sampleimagesinfo[imagenumber]);
                         break;
                     }
-                    case 3 : {
+                    case 3: {
                         image4data.setText(sampleimagesinfo[imagenumber]);
                         break;
                     }
@@ -220,14 +243,35 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-        }
-        else{
-            Toast.makeText(MainActivity.this,"Something Went Wrong !!!",Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(MainActivity.this, "Something Went Wrong !!!", Toast.LENGTH_SHORT).show();
         }
     }
 
-    Bitmap Watermark_function(Bitmap bit){
-        return bit;
+    @SuppressLint("MissingPermission")
+    void Watermark_function() {
+
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // GPS location can be null if GPS is switched off
+                        if (location != null) {
+                            mLastLocation=location;
+                            new FetchAddressTask(MainActivity.this,
+                                    MainActivity.this).execute(location);
+                            Log.d("Location", String.valueOf(mLastLocation.getLongitude()) + " " + String.valueOf(mLastLocation.getLatitude()));
+                            //Toast.makeText(MainActivity.this,String.valueOf(mLastLocation.getLatitude())+" "+
+                                    //String.valueOf(mLastLocation.getLongitude()),Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+            }
+
+    @Override
+    public void onTaskCompleted(String result) {
+        // Update the UI
+        Log.d("Final Address",result);
     }
 
 }
