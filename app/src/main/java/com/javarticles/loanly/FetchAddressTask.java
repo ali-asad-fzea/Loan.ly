@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+//URL of Documentation
+//https://developer.android.com/codelabs/advanced-android-training-device-location#4
+
 class FetchAddressTask extends AsyncTask<Location, Void, String> {
 
     private Context mContext;
