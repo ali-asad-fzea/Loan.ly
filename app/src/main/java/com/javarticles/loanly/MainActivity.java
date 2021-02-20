@@ -3,11 +3,13 @@ package com.javarticles.loanly;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -39,36 +41,53 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.google.firebase.storage.UploadTask;
+import com.javarticles.loanly.FormData;
+
 public class MainActivity extends AppCompatActivity implements
         FetchAddressTask.OnTaskCompleted{
-
-    EditText name;
-    EditText email;
-    EditText phone;
-    Button selectphoto1;
-    Button selectphoto2;
-    Button selectphoto3;
-    Button selectphoto4;
-    TextView image1data;
-    TextView image2data;
-    TextView image3data;
-    TextView image4data;
-    Button submit;
-    Bitmap[] sampleimages;
+    ConstraintLayout parentView;
+    EditText name_edittext;
+    EditText email_edittext;
+    EditText phone_edittext;
+    Button button_selectphoto1;
+    Button button_selectphoto2;
+    Button button_selectphoto3;
+    Button button_selectphoto4;
+    TextView textView_image1data;
+    TextView textView_image2data;
+    TextView textView_image3data;
+    TextView textView_image4data;
+    Button button_submit;
     String[] sampleimagesinfo;
+    String filename;
+    String name_value;
+    String email_value;
+    String phone_value;
+    boolean uploadsuccess;
 
     int imagenumber = -1;
     String mCurrentPhotoPath;
-    String compressedphotopath;
+    String[] compressedphotopath;
+
+    ////data class////
+    FormData formData;
+    /////////////////
 
     //////location/////
     Location mLastLocation;
@@ -76,38 +95,58 @@ public class MainActivity extends AppCompatActivity implements
     FusedLocationProviderClient mFusedLocationClient;
     //////////////////
 
+    /////////firebase////////////
+    // Creating StorageReference and DatabaseReference object.
+    StorageReference storageReference;
+    DatabaseReference databaseReference;
+    ProgressDialog progressDialog ;
+    ////////////////////////////
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        name = findViewById(R.id.editTextTextPersonName);
-        email = findViewById(R.id.editTextTextEmailAddress);
-        phone = findViewById(R.id.editTextPhone);
-        selectphoto1 = findViewById(R.id.buttonimage1);
-        selectphoto2 = findViewById(R.id.buttonimage2);
-        selectphoto3 = findViewById(R.id.buttonimage3);
-        selectphoto4 = findViewById(R.id.buttonimage4);
-        image1data = findViewById(R.id.textViewimage1);
-        image2data = findViewById(R.id.textViewimage2);
-        image3data = findViewById(R.id.textViewimage3);
-        image4data = findViewById(R.id.textViewimage4);
-        submit = findViewById(R.id.submit);
+        parentView=findViewById(R.id.parentLayout);
+        name_edittext = findViewById(R.id.editTextTextPersonName);
+        email_edittext = findViewById(R.id.editTextTextEmailAddress);
+        phone_edittext= findViewById(R.id.editTextPhone);
+        button_selectphoto1 = findViewById(R.id.buttonimage1);
+        button_selectphoto2 = findViewById(R.id.buttonimage2);
+        button_selectphoto3 = findViewById(R.id.buttonimage3);
+        button_selectphoto4 = findViewById(R.id.buttonimage4);
+        textView_image1data = findViewById(R.id.textViewimage1);
+        textView_image2data = findViewById(R.id.textViewimage2);
+        textView_image3data = findViewById(R.id.textViewimage3);
+        textView_image4data = findViewById(R.id.textViewimage4);
+        button_submit = findViewById(R.id.submit);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        sampleimages = new Bitmap[]{null, null, null, null};
-        sampleimagesinfo = new String[]{null, null, null, null};
+        // Assign FirebaseStorage instance to storageReference.
+        storageReference = FirebaseStorage.getInstance().getReference("Images");
 
-        /*submit.setOnClickListener(new View.OnClickListener() {
+        // Assign FirebaseDatabase instance with root database name.
+        databaseReference = FirebaseDatabase.getInstance().getReference("Images");
+
+        // Assigning Id to ProgressDialog.
+        progressDialog = new ProgressDialog(MainActivity.this);
+
+        name_value=email_value=phone_value="";
+        sampleimagesinfo=new String[4];
+        compressedphotopath=new String[]{null,null,null,null};
+
+        formData=new FormData();
+
+        button_submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 submit_function();
             }
-        });*/
+        });
 
-        selectphoto1.setOnClickListener(new View.OnClickListener() {
+        button_selectphoto1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 imagenumber = 0;
@@ -115,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        selectphoto2.setOnClickListener(new View.OnClickListener() {
+        button_selectphoto2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 imagenumber = 1;
@@ -123,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        selectphoto3.setOnClickListener(new View.OnClickListener() {
+        button_selectphoto3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 imagenumber = 2;
@@ -131,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        selectphoto4.setOnClickListener(new View.OnClickListener() {
+        button_selectphoto4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 imagenumber = 3;
@@ -140,9 +179,82 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-    /*void submit_function(){
+    void submit_function(){
+        ////////upload image with text to firebase////
+        //https://androidjson.com/upload-image-to-firebase-storage/
 
-    }*/
+        name_value=name_edittext.getText().toString().trim();
+        email_value=email_edittext.getText().toString().trim();
+        phone_value=phone_edittext.getText().toString().trim();
+
+        if(name_value.matches("") || email_value.matches("") || phone_value.matches("")
+        || compressedphotopath[0]==null || compressedphotopath[1]==null || compressedphotopath[2]==null || compressedphotopath[3]==null){
+            Toast.makeText(MainActivity.this,"Form Incomplete!!!",Toast.LENGTH_SHORT).show();
+        }
+        else{
+            progressDialog.setTitle("Image is Uploading...");
+            progressDialog.show();
+            formData.setPersonName(name_value);
+            formData.setPersonEmail(email_value);
+            formData.setPersonPhone(phone_value);
+
+            uploadsuccess=false;
+            File pathfile;
+            for(int i=0;i<4;i++){
+                final int finalI = i;
+
+                pathfile=new File(MainActivity.this.compressedphotopath[finalI]);
+                StorageReference storageReference2 = storageReference.child(sampleimagesinfo[finalI]);
+                storageReference2.putFile(Uri.fromFile(pathfile))
+                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                Toast.makeText(getApplicationContext(), "Image "+String.valueOf(finalI) +" Uploaded Successfully ", Toast.LENGTH_LONG).show();
+                                switch (finalI){
+                                    case 0:{
+                                        formData.setImage1Url(taskSnapshot.getUploadSessionUri().toString());
+                                        break;
+                                    }
+                                    case 1:{
+                                        formData.setImage2Url(taskSnapshot.getUploadSessionUri().toString());
+                                        break;
+                                    }
+                                    case 2:{
+                                        formData.setImage3Url(taskSnapshot.getUploadSessionUri().toString());
+                                        break;
+                                    }
+                                    case 3:{
+                                        formData.setImage4Url(taskSnapshot.getUploadSessionUri().toString());
+                                        uploadsuccess=true;
+                                        saveToDatabase_function(uploadsuccess);
+                                        break;
+                                    }
+                                }
+
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception exception) {
+                                Toast.makeText(MainActivity.this,"Error uploading "+String.valueOf(finalI+1),Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            }
+            progressDialog.dismiss();
+
+        }
+    }
+    void saveToDatabase_function(boolean uploadfilesuccess){
+        if(uploadfilesuccess){
+            String ImageUploadId = databaseReference.push().getKey();
+            databaseReference.child(ImageUploadId).setValue(formData);
+            Snackbar.make(parentView,"Successfully Uploaded",Snackbar.LENGTH_SHORT).show();
+        }
+        else{
+            Snackbar.make(parentView,"Error Occured",Snackbar.LENGTH_SHORT).show();
+        }
+    }
+
     void capture_function() {
         final int REQUEST_IMAGE_CAPTURE = 1;
 
@@ -283,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements
             );
 
             //getting path of compressed image///////
-            MainActivity.this.compressedphotopath=imagecompress.getAbsolutePath();
+            MainActivity.this.compressedphotopath[imagenumber]=imagecompress.getAbsolutePath();
 
             ///////saving compressed image///////
             try (FileOutputStream out = new FileOutputStream(imagecompress)) {
@@ -295,27 +407,28 @@ public class MainActivity extends AppCompatActivity implements
             /////////////////////////////////
 
             /////fetching file info////
-            File tempCompressedFile=new File(MainActivity.this.compressedphotopath);
-            sampleimagesinfo[imagenumber] = tempCompressedFile.getName() + "\n" + String.valueOf(tempCompressedFile.length() / 1000) + " KB";
+            File tempCompressedFile=new File(MainActivity.this.compressedphotopath[imagenumber]);
+            sampleimagesinfo[imagenumber] = tempCompressedFile.getName() ;
+            filename=tempCompressedFile.getName() + "\n" + String.valueOf(tempCompressedFile.length() / 1000) + " KB";
             //////////////////////////
 
             switch (imagenumber) {
                 case 0: {
-                    image1data.setText(sampleimagesinfo[imagenumber]);
+                    textView_image1data.setText(filename);
                     break;
                 }
 
                 case 1: {
-                    image2data.setText(sampleimagesinfo[imagenumber]);
+                    textView_image2data.setText(filename);
                     break;
                 }
 
                 case 2: {
-                    image3data.setText(sampleimagesinfo[imagenumber]);
+                    textView_image3data.setText(filename);
                     break;
                 }
                 case 3: {
-                    image4data.setText(sampleimagesinfo[imagenumber]);
+                    textView_image4data.setText(filename);
                     break;
                 }
             }
