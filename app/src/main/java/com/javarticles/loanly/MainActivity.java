@@ -207,8 +207,8 @@ public class MainActivity extends AppCompatActivity implements
                         dir
                 );
                 try (FileOutputStream out = new FileOutputStream(imagecompress)) {
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out); // bmp is your Bitmap instance
-                    // PNG is a lossless format, the compression factor (100) is ignored
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
