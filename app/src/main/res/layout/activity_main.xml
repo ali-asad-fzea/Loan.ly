@@ -24,15 +24,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
+        android:autofillHints="@string/editTextPersonname"
         android:ems="10"
         android:hint="@string/editTextPersonname"
         android:inputType="textPersonName"
-        android:textColorHint="@color/cardview_dark_background"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/name"
-        app:layout_constraintTop_toTopOf="parent"
-        android:autofillHints="@string/editTextPersonname"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView"
@@ -101,14 +100,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="54dp"
+        android:layout_marginTop="56dp"
         android:layout_marginEnd="15dp"
         android:scrollHorizontally="false"
         android:text="@string/textViewImage1"
         android:textColor="@color/colorPrimaryDark"
-        android:textSize="14sp"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/buttonimage1"
         app:layout_constraintTop_toBottomOf="@+id/PhoneNo." />
 
@@ -127,14 +126,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="32dp"
         android:layout_marginEnd="15dp"
         android:scrollHorizontally="false"
         android:text="@string/textViewImage2"
         android:textColor="@color/colorPrimaryDark"
-        android:textSize="14sp"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/buttonimage2"
         app:layout_constraintTop_toBottomOf="@+id/buttonimage1" />
 
@@ -153,14 +152,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="32dp"
         android:layout_marginEnd="15dp"
         android:scrollHorizontally="false"
         android:text="@string/textViewImage3"
         android:textColor="@color/colorPrimaryDark"
-        android:textSize="14sp"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/buttonimage3"
         app:layout_constraintTop_toBottomOf="@+id/buttonimage2" />
 
@@ -179,14 +178,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="32dp"
         android:layout_marginEnd="15dp"
         android:scrollHorizontally="false"
         android:text="@string/textViewImage4"
         android:textColor="@color/colorPrimaryDark"
-        android:textSize="14sp"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/buttonimage4"
         app:layout_constraintTop_toBottomOf="@+id/buttonimage3" />
 
@@ -198,6 +197,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonimage4" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonimage4"
+        app:layout_constraintVertical_bias="0.8" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

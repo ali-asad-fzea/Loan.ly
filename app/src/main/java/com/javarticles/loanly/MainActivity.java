@@ -14,12 +14,19 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -61,11 +68,12 @@ public class MainActivity extends AppCompatActivity implements
 
     int imagenumber = -1;
     String mCurrentPhotoPath;
+    String compressedphotopath;
 
     //////location/////
     Location mLastLocation;
+    String address;
     FusedLocationProviderClient mFusedLocationClient;
-
     //////////////////
 
 
@@ -186,62 +194,7 @@ public class MainActivity extends AppCompatActivity implements
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            //Uri uri = data.getData();
-            File file = new File(MainActivity.this.mCurrentPhotoPath);
-            try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.fromFile(file));
-
-                /////applying watermark////
-                Watermark_function();
-                //////////////////////////
-
-                //////saving compressed bitmap////
-                SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd_HHmmss_");
-                String timeStamp = sdf.format(new Date());
-                String imageFileName = "Compressed_" + timeStamp;
-
-                File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-                File imagecompress = File.createTempFile(
-                        imageFileName,
-                        ".jpeg",
-                        dir
-                );
-                try (FileOutputStream out = new FileOutputStream(imagecompress)) {
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                /////////////////////////////////
-
-                /////fetching file info////
-                sampleimagesinfo[imagenumber] = file.getName() + "\n" + String.valueOf(file.length() / 1000) + " KB";
-                //////////////////////////
-
-                switch (imagenumber) {
-                    case 0: {
-                        image1data.setText(sampleimagesinfo[imagenumber]);
-                        break;
-                    }
-
-                    case 1: {
-                        image2data.setText(sampleimagesinfo[imagenumber]);
-                        break;
-                    }
-
-                    case 2: {
-                        image3data.setText(sampleimagesinfo[imagenumber]);
-                        break;
-                    }
-                    case 3: {
-                        image4data.setText(sampleimagesinfo[imagenumber]);
-                        break;
-                    }
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                getLocation_function();
 
         } else {
             Toast.makeText(MainActivity.this, "Something Went Wrong !!!", Toast.LENGTH_SHORT).show();
@@ -249,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @SuppressLint("MissingPermission")
-    void Watermark_function() {
+    void getLocation_function() {
 
         mFusedLocationClient.getLastLocation()
                 .addOnSuccessListener(new OnSuccessListener<Location>() {
@@ -260,9 +213,8 @@ public class MainActivity extends AppCompatActivity implements
                             mLastLocation=location;
                             new FetchAddressTask(MainActivity.this,
                                     MainActivity.this).execute(location);
-                            Log.d("Location", String.valueOf(mLastLocation.getLongitude()) + " " + String.valueOf(mLastLocation.getLatitude()));
-                            //Toast.makeText(MainActivity.this,String.valueOf(mLastLocation.getLatitude())+" "+
-                                    //String.valueOf(mLastLocation.getLongitude()),Toast.LENGTH_LONG).show();
+                            Log.d("Location", String.valueOf(mLastLocation.getLatitude()) + " " + String.valueOf(mLastLocation.getLongitude()));
+
                         }
                     }
                 });
@@ -271,7 +223,106 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onTaskCompleted(String result) {
         // Update the UI
+        address=result+"\nLatitude = "+String.valueOf(mLastLocation.getLatitude())+", Longitude = "+String.valueOf(mLastLocation.getLongitude());
+
+        ////////////calling watermarkFunction//////
+        watermarkAndCompress_function();
         Log.d("Final Address",result);
     }
 
+    void watermarkAndCompress_function(){
+        //Uri uri = data.getData();
+        File file = new File(MainActivity.this.mCurrentPhotoPath);
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.fromFile(file));
+
+            Bitmap bmpWithBorder = Bitmap.createBitmap(bitmap.getWidth() , bitmap.getHeight() + 300 * 2, bitmap.getConfig());
+            Canvas canvas = new Canvas(bmpWithBorder);
+            canvas.drawColor(Color.WHITE);
+            canvas.drawBitmap(bitmap, 0,0, null);
+
+            // new antialiased Paint
+            TextPaint paint=new TextPaint(Paint.ANTI_ALIAS_FLAG);
+            // text color - #3D3D3D
+            paint.setColor(Color.BLACK);
+            // text size in pixels
+            paint.setTextSize(125);
+            // text shadow
+            paint.setShadowLayer(1f, 0f, 1f, Color.WHITE);
+
+            // set text width to canvas width
+            int textWidth = canvas.getWidth() - 50;
+            ///////////////////text//////////
+            String gText=address;
+            // init StaticLayout for text
+            StaticLayout textLayout = new StaticLayout(
+                    gText, paint, textWidth, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
+
+
+            // get position of text's top left corner
+            float x = (bmpWithBorder.getWidth() - textWidth)/2;
+            float y = bitmap.getHeight()+50;
+
+            // draw text to the Canvas
+            canvas.save();
+            canvas.translate(x, y);
+            textLayout.draw(canvas);
+            canvas.restore();
+            //////////////////////////
+
+            //////saving compressed bitmap////
+            SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd_HHmmss_");
+            String timeStamp = sdf.format(new Date());
+            String imageFileName = "Compressed_" + timeStamp;
+
+            File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File imagecompress = File.createTempFile(
+                    imageFileName,
+                    ".jpeg",
+                    dir
+            );
+
+            //getting path of compressed image///////
+            MainActivity.this.compressedphotopath=imagecompress.getAbsolutePath();
+
+            ///////saving compressed image///////
+            try (FileOutputStream out = new FileOutputStream(imagecompress)) {
+                bmpWithBorder.compress(Bitmap.CompressFormat.JPEG, 50, out);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            /////////////////////////////////
+
+            /////fetching file info////
+            File tempCompressedFile=new File(MainActivity.this.compressedphotopath);
+            sampleimagesinfo[imagenumber] = tempCompressedFile.getName() + "\n" + String.valueOf(tempCompressedFile.length() / 1000) + " KB";
+            //////////////////////////
+
+            switch (imagenumber) {
+                case 0: {
+                    image1data.setText(sampleimagesinfo[imagenumber]);
+                    break;
+                }
+
+                case 1: {
+                    image2data.setText(sampleimagesinfo[imagenumber]);
+                    break;
+                }
+
+                case 2: {
+                    image3data.setText(sampleimagesinfo[imagenumber]);
+                    break;
+                }
+                case 3: {
+                    image4data.setText(sampleimagesinfo[imagenumber]);
+                    break;
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
