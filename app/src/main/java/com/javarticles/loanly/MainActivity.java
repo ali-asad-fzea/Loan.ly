@@ -33,6 +33,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -84,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements
     int imagenumber = -1;
     String mCurrentPhotoPath;
     String[] compressedphotopath;
+    ProgressBar progressBar;
 
     ////data class////
     FormData formData;
@@ -99,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements
     // Creating StorageReference and DatabaseReference object.
     StorageReference storageReference;
     DatabaseReference databaseReference;
-    ProgressDialog progressDialog ;
     ////////////////////////////
 
 
@@ -120,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements
         textView_image2data = findViewById(R.id.textViewimage2);
         textView_image3data = findViewById(R.id.textViewimage3);
         textView_image4data = findViewById(R.id.textViewimage4);
+        progressBar=findViewById(R.id.progressBar);
         button_submit = findViewById(R.id.submit);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -129,9 +131,6 @@ public class MainActivity extends AppCompatActivity implements
 
         // Assign FirebaseDatabase instance with root database name.
         databaseReference = FirebaseDatabase.getInstance().getReference("Images");
-
-        // Assigning Id to ProgressDialog.
-        progressDialog = new ProgressDialog(MainActivity.this);
 
         name_value=email_value=phone_value="";
         sampleimagesinfo=new String[4];
@@ -192,19 +191,18 @@ public class MainActivity extends AppCompatActivity implements
             Toast.makeText(MainActivity.this,"Form Incomplete!!!",Toast.LENGTH_SHORT).show();
         }
         else{
-            progressDialog.setTitle("Image is Uploading...");
-            progressDialog.show();
             formData.setPersonName(name_value);
             formData.setPersonEmail(email_value);
             formData.setPersonPhone(phone_value);
 
+            progressBar.setVisibility(View.VISIBLE);
             uploadsuccess=false;
             File pathfile;
             for(int i=0;i<4;i++){
                 final int finalI = i;
 
                 pathfile=new File(MainActivity.this.compressedphotopath[finalI]);
-                StorageReference storageReference2 = storageReference.child(sampleimagesinfo[finalI]);
+                final StorageReference storageReference2 = storageReference.child(sampleimagesinfo[finalI]);
                 storageReference2.putFile(Uri.fromFile(pathfile))
                         .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
@@ -212,21 +210,46 @@ public class MainActivity extends AppCompatActivity implements
                                 Toast.makeText(getApplicationContext(), "Image "+String.valueOf(finalI) +" Uploaded Successfully ", Toast.LENGTH_LONG).show();
                                 switch (finalI){
                                     case 0:{
-                                        formData.setImage1Url(taskSnapshot.getUploadSessionUri().toString());
+                                        storageReference2.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                            @Override
+                                            public void onSuccess(Uri uri) {
+                                                Uri downloadUrl = uri;
+                                                formData.setImage1Url(downloadUrl.toString());
+                                            }
+                                        });
                                         break;
                                     }
                                     case 1:{
-                                        formData.setImage2Url(taskSnapshot.getUploadSessionUri().toString());
+                                        storageReference2.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                            @Override
+                                            public void onSuccess(Uri uri) {
+                                                Uri downloadUrl = uri;
+                                                formData.setImage2Url(downloadUrl.toString());
+                                            }
+                                        });
                                         break;
                                     }
                                     case 2:{
-                                        formData.setImage3Url(taskSnapshot.getUploadSessionUri().toString());
+                                        storageReference2.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                            @Override
+                                            public void onSuccess(Uri uri) {
+                                                Uri downloadUrl = uri;
+                                                formData.setImage3Url(downloadUrl.toString());
+                                            }
+                                        });
                                         break;
                                     }
                                     case 3:{
-                                        formData.setImage4Url(taskSnapshot.getUploadSessionUri().toString());
+                                        storageReference2.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                            @Override
+                                            public void onSuccess(Uri uri) {
+                                                Uri downloadUrl = uri;
+                                                formData.setImage4Url(downloadUrl.toString());
+                                            }
+                                        });
                                         uploadsuccess=true;
                                         saveToDatabase_function(uploadsuccess);
+                                        progressBar.setVisibility(View.GONE);
                                         break;
                                     }
                                 }
@@ -237,10 +260,12 @@ public class MainActivity extends AppCompatActivity implements
                             @Override
                             public void onFailure(@NonNull Exception exception) {
                                 Toast.makeText(MainActivity.this,"Error uploading "+String.valueOf(finalI+1),Toast.LENGTH_SHORT).show();
+                                if(finalI==3){
+                                    progressBar.setVisibility(View.GONE);
+                                }
                             }
                         });
             }
-            progressDialog.dismiss();
 
         }
     }
