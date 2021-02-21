@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements
     String email_value;
     String phone_value;
     boolean uploadsuccess;
+    int count_imageupload;
 
     int imagenumber = -1;
     String mCurrentPhotoPath;
@@ -198,16 +199,16 @@ public class MainActivity extends AppCompatActivity implements
             progressBar.setVisibility(View.VISIBLE);
             uploadsuccess=false;
             File pathfile;
+            count_imageupload=0;
             for(int i=0;i<4;i++){
                 final int finalI = i;
-
                 pathfile=new File(MainActivity.this.compressedphotopath[finalI]);
                 final StorageReference storageReference2 = storageReference.child(sampleimagesinfo[finalI]);
                 storageReference2.putFile(Uri.fromFile(pathfile))
                         .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                Toast.makeText(getApplicationContext(), "Image "+String.valueOf(finalI) +" Uploaded Successfully ", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "Image "+String.valueOf(finalI+1) +" Uploaded Successfully ", Toast.LENGTH_LONG).show();
                                 switch (finalI){
                                     case 0:{
                                         storageReference2.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
@@ -215,6 +216,12 @@ public class MainActivity extends AppCompatActivity implements
                                             public void onSuccess(Uri uri) {
                                                 Uri downloadUrl = uri;
                                                 formData.setImage1Url(downloadUrl.toString());
+                                                count_imageupload+=1;
+                                                if(count_imageupload==4){
+                                                    uploadsuccess=true;
+                                                    saveToDatabase_function(uploadsuccess);
+                                                    progressBar.setVisibility(View.GONE);
+                                                }
                                             }
                                         });
                                         break;
@@ -225,8 +232,15 @@ public class MainActivity extends AppCompatActivity implements
                                             public void onSuccess(Uri uri) {
                                                 Uri downloadUrl = uri;
                                                 formData.setImage2Url(downloadUrl.toString());
+                                                count_imageupload+=1;
+                                                if(count_imageupload==4){
+                                                    uploadsuccess=true;
+                                                    saveToDatabase_function(uploadsuccess);
+                                                    progressBar.setVisibility(View.GONE);
+                                                }
                                             }
                                         });
+
                                         break;
                                     }
                                     case 2:{
@@ -235,6 +249,12 @@ public class MainActivity extends AppCompatActivity implements
                                             public void onSuccess(Uri uri) {
                                                 Uri downloadUrl = uri;
                                                 formData.setImage3Url(downloadUrl.toString());
+                                                count_imageupload+=1;
+                                                if(count_imageupload==4){
+                                                    uploadsuccess=true;
+                                                    saveToDatabase_function(uploadsuccess);
+                                                    progressBar.setVisibility(View.GONE);
+                                                }
                                             }
                                         });
                                         break;
@@ -245,11 +265,14 @@ public class MainActivity extends AppCompatActivity implements
                                             public void onSuccess(Uri uri) {
                                                 Uri downloadUrl = uri;
                                                 formData.setImage4Url(downloadUrl.toString());
+                                                count_imageupload+=1;
+                                                if(count_imageupload==4){
+                                                    uploadsuccess=true;
+                                                    saveToDatabase_function(uploadsuccess);
+                                                    progressBar.setVisibility(View.GONE);
+                                                }
                                             }
                                         });
-                                        uploadsuccess=true;
-                                        saveToDatabase_function(uploadsuccess);
-                                        progressBar.setVisibility(View.GONE);
                                         break;
                                     }
                                 }
