@@ -64,8 +64,9 @@ public class MainActivity extends AppCompatActivity implements
         FetchAddressTask.OnTaskCompleted{
     ConstraintLayout parentView;
     EditText name_edittext;
-    EditText email_edittext;
     EditText phone_edittext;
+    EditText adhar_edittext;
+    EditText address_edittext;
     Button button_selectphoto1;
     Button button_selectphoto2;
     Button button_selectphoto3;
@@ -78,7 +79,8 @@ public class MainActivity extends AppCompatActivity implements
     String[] sampleimagesinfo;
     String filename;
     String name_value;
-    String email_value;
+    String adhar_value;
+    String address_value;
     String phone_value;
     boolean uploadsuccess;
     int count_imageupload;
@@ -112,7 +114,8 @@ public class MainActivity extends AppCompatActivity implements
 
         parentView=findViewById(R.id.parentLayout);
         name_edittext = findViewById(R.id.editTextTextPersonName);
-        email_edittext = findViewById(R.id.editTextTextEmailAddress);
+        address_edittext=findViewById(R.id.editTextAddress);
+        adhar_edittext=findViewById(R.id.editTextAdhar);
         phone_edittext= findViewById(R.id.editTextPhone);
         button_selectphoto1 = findViewById(R.id.buttonimage1);
         button_selectphoto2 = findViewById(R.id.buttonimage2);
@@ -133,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements
         // Assign FirebaseDatabase instance with root database name.
         databaseReference = FirebaseDatabase.getInstance().getReference("Images");
 
-        name_value=email_value=phone_value="";
+        name_value=address_value=adhar_value=phone_value="";
         sampleimagesinfo=new String[4];
         compressedphotopath=new String[]{null,null,null,null};
 
@@ -184,16 +187,18 @@ public class MainActivity extends AppCompatActivity implements
         //https://androidjson.com/upload-image-to-firebase-storage/
 
         name_value=name_edittext.getText().toString().trim();
-        email_value=email_edittext.getText().toString().trim();
+        adhar_value=adhar_edittext.getText().toString().trim();
+        address_value=address_edittext.getText().toString().trim();
         phone_value=phone_edittext.getText().toString().trim();
 
-        if(name_value.matches("") || email_value.matches("") || phone_value.matches("")
+        if(name_value.matches("") || adhar_value.matches("") || phone_value.matches("") || address_value.matches("")
         || compressedphotopath[0]==null || compressedphotopath[1]==null || compressedphotopath[2]==null || compressedphotopath[3]==null){
             Toast.makeText(MainActivity.this,"Form Incomplete!!!",Toast.LENGTH_SHORT).show();
         }
         else{
             formData.setPersonName(name_value);
-            formData.setPersonEmail(email_value);
+            formData.setPersonAddress(address_value);
+            formData.setPersonAdhar(adhar_value);
             formData.setPersonPhone(phone_value);
 
             progressBar.setVisibility(View.VISIBLE);

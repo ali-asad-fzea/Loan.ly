@@ -2,8 +2,9 @@ package com.javarticles.loanly;
 
 public class FormData {
     String personName;
-    String PersonEmail;
     String PersonPhone;
+    String PersonAddress;
+    String PersonAdhar;
     String image1Url;
     String image2Url;
     String image3Url;
@@ -15,14 +16,6 @@ public class FormData {
 
     public void setPersonName(String personName) {
         this.personName = personName;
-    }
-
-    public String getPersonEmail() {
-        return PersonEmail;
-    }
-
-    public void setPersonEmail(String personEmail) {
-        PersonEmail = personEmail;
     }
 
     public String getPersonPhone() {
@@ -64,4 +57,20 @@ public class FormData {
     public void setImage4Url(String image4Url) {
         this.image4Url = image4Url;
     }
+    public String getPersonAddress() {
+        return PersonAddress;
+    }
+
+    public void setPersonAddress(String personAddress) {
+        PersonAddress = personAddress;
+    }
+
+    public String getPersonAdhar() {
+        return PersonAdhar;
+    }
+
+    public void setPersonAdhar(String personAdhar) {
+        PersonAdhar = personAdhar;
+    }
+
 }

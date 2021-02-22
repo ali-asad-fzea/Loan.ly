@@ -2,7 +2,8 @@
     <string name="app_name">Loan.ly</string>
     <string name="PhoneNo">Phone No. :</string>
     <string name="Name">Name :</string>
-    <string name="Email">E-Mail :</string>
+    <string name="Address">Address :</string>
+    <string name="Adhar">Adhar :</string>
     <string name="textViewImage1">Select an Image</string>
     <string name="textViewImage2">Select an Image</string>
     <string name="textViewImage3">Select an Image</string>
@@ -13,6 +14,7 @@
     <string name="buttonimage3">Select Image 3</string>
     <string name="buttonimage4">Select Image 4</string>
     <string name="editTextPersonname">Enter Full Name</string>
-    <string name="editTextEmail">Enter E-Mail Address</string>
+    <string name="editTextAddress">Enter Address</string>
     <string name="editTextPhone">Enter Phone Number</string>
+    <string name="editadhar">Enter Adhar</string>
 </resources>
