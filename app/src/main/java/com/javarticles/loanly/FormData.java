@@ -1,76 +1,76 @@
 package com.javarticles.loanly;
 
 public class FormData {
-    String personName;
-    String PersonPhone;
-    String PersonAddress;
-    String PersonAdhar;
-    String image1Url;
-    String image2Url;
-    String image3Url;
-    String image4Url;
+    String name;
+    String mobile_no;
+    String Address;
+    String adhar;
+    String avatar1;
+    String avatar2;
+    String avatar3;
+    String avatar4;
 
-    public String getPersonName() {
-        return personName;
+    public String getName() {
+        return name;
     }
 
-    public void setPersonName(String personName) {
-        this.personName = personName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getPersonPhone() {
-        return PersonPhone;
+    public String getMobile_no() {
+        return mobile_no;
     }
 
-    public void setPersonPhone(String personPhone) {
-        PersonPhone = personPhone;
+    public void setMobile_no(String mobile_no) {
+        this.mobile_no = mobile_no;
     }
 
-    public String getImage1Url() {
-        return image1Url;
+    public String getAddress() {
+        return Address;
     }
 
-    public void setImage1Url(String image1Url) {
-        this.image1Url = image1Url;
+    public void setAddress(String address) {
+        Address = address;
     }
 
-    public String getImage2Url() {
-        return image2Url;
+    public String getAdhar() {
+        return adhar;
     }
 
-    public void setImage2Url(String image2Url) {
-        this.image2Url = image2Url;
+    public void setAdhar(String adhar) {
+        this.adhar = adhar;
     }
 
-    public String getImage3Url() {
-        return image3Url;
+    public String getAvatar1() {
+        return avatar1;
     }
 
-    public void setImage3Url(String image3Url) {
-        this.image3Url = image3Url;
+    public void setAvatar1(String avatar1) {
+        this.avatar1 = avatar1;
     }
 
-    public String getImage4Url() {
-        return image4Url;
+    public String getAvatar2() {
+        return avatar2;
     }
 
-    public void setImage4Url(String image4Url) {
-        this.image4Url = image4Url;
-    }
-    public String getPersonAddress() {
-        return PersonAddress;
+    public void setAvatar2(String avatar2) {
+        this.avatar2 = avatar2;
     }
 
-    public void setPersonAddress(String personAddress) {
-        PersonAddress = personAddress;
+    public String getAvatar3() {
+        return avatar3;
     }
 
-    public String getPersonAdhar() {
-        return PersonAdhar;
+    public void setAvatar3(String avatar3) {
+        this.avatar3 = avatar3;
     }
 
-    public void setPersonAdhar(String personAdhar) {
-        PersonAdhar = personAdhar;
+    public String getAvatar4() {
+        return avatar4;
     }
 
+    public void setAvatar4(String avatar4) {
+        this.avatar4 = avatar4;
+    }
 }

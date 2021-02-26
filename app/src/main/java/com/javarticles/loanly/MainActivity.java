@@ -9,6 +9,7 @@ import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.location.Location;
@@ -29,6 +31,7 @@ import android.provider.OpenableColumns;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -37,12 +40,21 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -53,20 +65,34 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.google.firebase.storage.UploadTask;
 import com.javarticles.loanly.FormData;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Retrofit;
+
 public class MainActivity extends AppCompatActivity implements
         FetchAddressTask.OnTaskCompleted{
     ConstraintLayout parentView;
-    EditText name_edittext;
-    EditText phone_edittext;
-    EditText adhar_edittext;
-    EditText address_edittext;
+    TextInputEditText name_edittext;
+    TextInputEditText phone_edittext;
+    TextInputEditText adhar_edittext;
+    TextInputEditText address_edittext;
     Button button_selectphoto1;
     Button button_selectphoto2;
     Button button_selectphoto3;
@@ -88,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements
     int imagenumber = -1;
     String mCurrentPhotoPath;
     String[] compressedphotopath;
+    Bitmap[] compressedBitmap;
     ProgressBar progressBar;
 
     ////data class////
@@ -113,10 +140,10 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
 
         parentView=findViewById(R.id.parentLayout);
-        name_edittext = findViewById(R.id.editTextTextPersonName);
-        address_edittext=findViewById(R.id.editTextAddress);
-        adhar_edittext=findViewById(R.id.editTextAdhar);
-        phone_edittext= findViewById(R.id.editTextPhone);
+        name_edittext = findViewById(R.id.TextInputEditTextName);
+        address_edittext=findViewById(R.id.TextInputEditTextAddress);
+        adhar_edittext=findViewById(R.id.TextInputEditTextAdhar);
+        phone_edittext= findViewById(R.id.TextInputEditTextPhone);
         button_selectphoto1 = findViewById(R.id.buttonimage1);
         button_selectphoto2 = findViewById(R.id.buttonimage2);
         button_selectphoto3 = findViewById(R.id.buttonimage3);
@@ -139,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements
         name_value=address_value=adhar_value=phone_value="";
         sampleimagesinfo=new String[4];
         compressedphotopath=new String[]{null,null,null,null};
+        compressedBitmap=new Bitmap[]{null,null,null,null};
 
         formData=new FormData();
 
@@ -183,6 +211,70 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     void submit_function(){
+        name_value=name_edittext.getText().toString().trim();
+        adhar_value=adhar_edittext.getText().toString().trim();
+        address_value=address_edittext.getText().toString().trim();
+        phone_value=phone_edittext.getText().toString().trim();
+
+        if(name_value.matches("") || adhar_value.matches("") || phone_value.matches("") || address_value.matches("")
+                || compressedBitmap[0]==null /* || compressedBitmap[1]==null || compressedBitmap[2]==null || compressedBitmap[3]==null*/){
+            Toast.makeText(MainActivity.this,"Form Incomplete!!!",Toast.LENGTH_SHORT).show();
+        }
+        else{
+
+            progressBar.setVisibility(View.VISIBLE);
+
+            UploadReceiptService service = RetrofitClientInstance.getRetrofitInstance().create(UploadReceiptService.class);
+
+            File file = new File(MainActivity.this.compressedphotopath[0]);
+
+            RequestBody requestFile =
+                    RequestBody.create(
+                            MediaType.parse("multipart/form-data"),
+                            file
+                    );
+
+
+            MultipartBody.Part avatar1 =
+                    MultipartBody.Part.createFormData("avatar1", file.getName(), requestFile);
+
+
+            String Token = "Token 9dc7a0c191f9e74cbbd3fd15731a60bb23ee7073";
+            RequestBody name = RequestBody.create(MediaType.parse("multipart/form-data"), name_value);
+            RequestBody mobile_no = RequestBody.create(MediaType.parse("multipart/form-data"), phone_value);
+            RequestBody Address = RequestBody.create(MediaType.parse("multipart/form-data"), address_value);
+            RequestBody adhar = RequestBody.create(MediaType.parse("multipart/form-data"), adhar_value);
+
+
+            Call<FormData> call = service.uploadReceipt(Token,avatar1, name, mobile_no,Address,adhar);
+
+            call.enqueue(new Callback<FormData>() {
+                @Override
+                public void onResponse(Call<FormData> call, retrofit2.Response<FormData> response) {
+
+                        progressBar.setVisibility(View.GONE);
+                        Log.d("Upload Successfull",response.message()+" "+String.valueOf(response.code()));
+                        Snackbar.make(parentView,"Successfully Uploaded",Snackbar.LENGTH_SHORT).show();
+
+                        Log.d("Upload error",response.message()+" "+String.valueOf(response.code()));
+                        progressBar.setVisibility(View.GONE);
+                        Snackbar.make(parentView,"Upload Error",Snackbar.LENGTH_SHORT).show();
+
+
+                }
+
+                @Override
+                public void onFailure(Call<FormData> call, Throwable t) {
+                    progressBar.setVisibility(View.GONE);
+                    Snackbar.make(parentView,"Error Occured",Snackbar.LENGTH_SHORT).show();
+                    Log.d("error",t.getMessage());
+                }
+            });
+    }
+    }
+
+
+    /*void submit_function(){
         ////////upload image with text to firebase////
         //https://androidjson.com/upload-image-to-firebase-storage/
 
@@ -296,8 +388,8 @@ public class MainActivity extends AppCompatActivity implements
             }
 
         }
-    }
-    void saveToDatabase_function(boolean uploadfilesuccess){
+    }*/
+    /*void saveToDatabase_function(boolean uploadfilesuccess){
         if(uploadfilesuccess){
             String ImageUploadId = databaseReference.push().getKey();
             databaseReference.child(ImageUploadId).setValue(formData);
@@ -306,7 +398,7 @@ public class MainActivity extends AppCompatActivity implements
         else{
             Snackbar.make(parentView,"Error Occured",Snackbar.LENGTH_SHORT).show();
         }
-    }
+    }*/
 
     void capture_function() {
         final int REQUEST_IMAGE_CAPTURE = 1;
@@ -457,6 +549,7 @@ public class MainActivity extends AppCompatActivity implements
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            compressedBitmap[imagenumber]=bmpWithBorder;
             /////////////////////////////////
 
             /////fetching file info////
